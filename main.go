@@ -119,9 +119,6 @@ func main() {
         - DB PASS
         - DB DB?
 
-    * MarkdownTexts
-        - GET /:name
-        - PUT /:name (auth)
     * Books
         - GET /
     * Games
