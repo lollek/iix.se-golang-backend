@@ -29,9 +29,9 @@ func LoginHandler(c *Context) {
     }
 
     switch c.Request.Method {
-        case "GET": checkLoggedIn(c)
-        case "POST": login(c)
-        default: c.StatusCode = http.StatusMethodNotAllowed
+    case "GET": checkLoggedIn(c)
+    case "POST": login(c)
+    default: c.StatusCode = http.StatusMethodNotAllowed
     }
 }
 
