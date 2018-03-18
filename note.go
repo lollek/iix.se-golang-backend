@@ -28,6 +28,7 @@ func (Notes) GetOne(c *Context, id int64) {
             panic(err)
         }
         c.Data = string(data)
+        c.Header["Content-Type"] = "application/json"
     default:
         panic(err)
     }
@@ -43,6 +44,7 @@ func (Notes) GetAll(c *Context) {
             panic(err)
         }
         c.Data = string(data)
+        c.Header["Content-Type"] = "application/json"
     default:
         panic(err)
     }
@@ -59,6 +61,7 @@ func (Notes) Post(c *Context) {
         panic(err)
     }
     c.Data = string(data)
+    c.Header["Content-Type"] = "application/json"
 }
 
 func (Notes) Delete(c *Context, id int64) {
@@ -76,4 +79,5 @@ func (Notes) Put(c *Context, id int64) {
         panic(err)
     }
     c.Data = string(data)
+    c.Header["Content-Type"] = "application/json"
 }

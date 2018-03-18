@@ -1,14 +1,25 @@
 package main
 
 import (
+    "errors"
+    "strings"
     "net/http"
     "encoding/json"
     "golang.org/x/crypto/bcrypt"
+    "github.com/dgrijalva/jwt-go"
 )
 
 type User struct {
     Username    string      `json:"username"`
     Password    string      `json:"password"`
+}
+
+const authHeader string = "Authorization"
+const authPrefix string = "Bearer "
+var secretKey []byte
+
+func InitJWT(secret string) {
+    secretKey = []byte(secret)
 }
 
 func LoginHandler(c *Context) {
@@ -25,7 +36,9 @@ func LoginHandler(c *Context) {
 }
 
 func IsAuthorized(c *Context) bool {
-    return false
+    header := c.Request.Header.Get(authHeader)
+    _, err := validateToken(strings.TrimPrefix(header, authPrefix))
+    return err == nil
 }
 
 func checkLoggedIn(c *Context) {
@@ -58,4 +71,28 @@ func login(c *Context) {
         return
     }
 
+    c.Header[authHeader] = authPrefix + createToken(dbUser)
+}
+
+func createToken(user User) string {
+    token := jwt.New(jwt.SigningMethodHS256)
+    claims := token.Claims.(jwt.MapClaims)
+    claims["sub"] = user.Username
+    tokenString, err := token.SignedString(secretKey)
+    if err != nil {
+        panic(err)
+    }
+    return tokenString
+}
+
+func validateToken(tokenString string) (*jwt.Token, error) {
+    token, _ := jwt.Parse(tokenString, func(*jwt.Token) (interface{}, error) {
+        return secretKey, nil
+    })
+
+    if token == nil || !token.Valid {
+        return nil, errors.New("Invalid token")
+    } else {
+        return token, nil
+    }
 }

@@ -47,6 +47,7 @@ func wrapper(endpoint string, handler func(c *Context)) {
             Request:    r,
             Path:       r.URL.Path[len(endpoint):],
             StatusCode: http.StatusOK,
+            Header:     make(map[string]string),
         }
         defer cleanup(w, r, c)
         handler(c)
@@ -65,7 +66,7 @@ func resourceHandler(context *Context, controller Controller) {
     }
 
     id, err := strconv.ParseInt(context.Path, 10, 64)
-    if err != nil{
+    if err != nil {
         context.StatusCode = http.StatusBadRequest
         context.Data = "id is not a number"
         return
@@ -82,6 +83,7 @@ func resourceHandler(context *Context, controller Controller) {
 
 func main() {
     db = NewDB("localhost:5432", "www-data", "www-data", "iix-notes")
+    InitJWT("debug")
     wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
     wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
     wrapper("/login/",      func(c *Context) { LoginHandler(c) })
