@@ -31,7 +31,7 @@ func (Beverages) GetOne(c *Context, id int64) {
 }
 
 func (Beverages) GetAll(c *Context) {
-    var beverages []Beverages
+    var beverages []Beverage
     err := db.LoadAll(&beverages)
     switch err {
     case ErrNotFound:   json.NewEncoder(c.Writer).Encode(beverages)
