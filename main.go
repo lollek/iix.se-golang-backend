@@ -5,6 +5,7 @@ import (
     "strconv"
     "net/http"
     "runtime/debug"
+    "encoding/json"
 )
 
 type Context struct {
@@ -15,7 +16,11 @@ type Context struct {
     Header      map[string]string
 }
 
-func (c Context) SetJsonData(data []byte) {
+func (c *Context) SetJsonData(model interface{}) {
+    data, err := json.Marshal(model)
+    if err != nil {
+        panic(err)
+    }
     c.Data = data
     c.Header["Content-Type"] = "application/json"
 }
@@ -102,6 +107,7 @@ func main() {
     wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
     wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
     wrapper("/login/",      func(c *Context) { LoginHandler(c) })
+    wrapper("/markdown/",   func(c *Context) { MarkdownTextHandler(c) })
     log.Fatal(http.ListenAndServe(":8000", nil))
 
     /*

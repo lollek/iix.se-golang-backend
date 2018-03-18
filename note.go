@@ -23,11 +23,7 @@ func (Notes) GetOne(c *Context, id int64) {
         c.StatusCode = http.StatusNotFound
         c.Data = []byte(err.Error())
     case nil:
-        data, err := json.Marshal(note)
-        if err != nil {
-            panic(err)
-        }
-        c.SetJsonData(data)
+        c.SetJsonData(&note)
     default:
         panic(err)
     }
@@ -37,14 +33,8 @@ func (Notes) GetAll(c *Context) {
     var notes []Note
     err := db.LoadAll(&notes)
     switch err {
-    case ErrNotFound, nil:
-        data, err := json.Marshal(notes)
-        if err != nil {
-            panic(err)
-        }
-        c.SetJsonData(data)
-    default:
-        panic(err)
+    case ErrNotFound, nil:  c.SetJsonData(&notes)
+    default:                panic(err)
     }
 }
 
@@ -54,11 +44,7 @@ func (Notes) Post(c *Context) {
     note.Id = nil
     db.Insert(&note)
     c.StatusCode = http.StatusCreated
-    data, err := json.Marshal(note)
-    if err != nil {
-        panic(err)
-    }
-    c.SetJsonData(data)
+    c.SetJsonData(&note)
 }
 
 func (Notes) Delete(c *Context, id int64) {
@@ -71,9 +57,5 @@ func (Notes) Put(c *Context, id int64) {
     json.NewDecoder(c.Request.Body).Decode(&note)
     note.Id = &id
     db.Update(&note)
-    data, err := json.Marshal(note)
-    if err != nil {
-        panic(err)
-    }
-    c.SetJsonData(data)
+    c.SetJsonData(&note)
 }

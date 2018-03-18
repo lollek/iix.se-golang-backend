@@ -28,11 +28,7 @@ func (Beverages) GetOne(c *Context, id int64) {
         c.StatusCode = http.StatusNotFound
         c.Data = []byte(err.Error())
     case nil:
-        data, err := json.Marshal(beverage)
-        if err != nil {
-            panic(err)
-        }
-        c.SetJsonData(data)
+        c.SetJsonData(&beverage)
     default:
         panic(err)
     }
@@ -42,14 +38,8 @@ func (Beverages) GetAll(c *Context) {
     var beverages []Beverage
     err := db.LoadAll(&beverages)
     switch err {
-    case ErrNotFound, nil:
-        data, err := json.Marshal(beverages)
-        if err != nil {
-            panic(err)
-        }
-        c.SetJsonData(data)
-    default:
-        panic(err)
+    case ErrNotFound, nil:  c.SetJsonData(&beverages)
+    default:                panic(err)
     }
 }
 
@@ -59,11 +49,7 @@ func (Beverages) Post(c *Context) {
     beverage.Id = nil
     db.Insert(&beverage)
     c.StatusCode = http.StatusCreated
-    data, err := json.Marshal(beverage)
-    if err != nil {
-        panic(err)
-    }
-    c.SetJsonData(data)
+    c.SetJsonData(&beverage)
 }
 
 func (Beverages) Delete(c *Context, id int64) {
@@ -76,9 +62,5 @@ func (Beverages) Put(c *Context, id int64) {
     json.NewDecoder(c.Request.Body).Decode(&beverage)
     beverage.Id = &id
     db.Update(&beverage)
-    data, err := json.Marshal(beverage)
-    if err != nil {
-        panic(err)
-    }
-    c.SetJsonData(data)
+    c.SetJsonData(&beverage)
 }
