@@ -10,6 +10,7 @@ import (
 type Context struct {
     Writer      http.ResponseWriter
     Request     *http.Request
+    Path        string
 }
 
 type Controller interface {
@@ -20,7 +21,7 @@ type Controller interface {
     Put(c *Context, id int64)
 }
 
-func recoverPanic(writer http.ResponseWriter) {
+func RecoverPanic(writer http.ResponseWriter) {
     if r := recover(); r != nil {
         log.Printf("Panic: '%s'", r)
         log.Printf("Stacktrace: '%s'", debug.Stack())
@@ -28,68 +29,65 @@ func recoverPanic(writer http.ResponseWriter) {
     }
 }
 
-func registerResource(endpoint string, controller Controller) {
+func wrapper(endpoint string, handler func(c *Context)) {
     http.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
-        defer recoverPanic(w)
-        relativePath := r.URL.Path[len(endpoint):]
+        defer RecoverPanic(w)
         context := &Context{
             Writer: w,
             Request: r,
+            Path: r.URL.Path[len(endpoint):],
         }
-
-        // /endpoint/
-        if relativePath == "" {
-            switch r.Method {
-            case "GET": controller.GetAll(context)
-            case "POST": controller.Post(context)
-            default: http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-            }
-            return
-        }
-
-        id, err := strconv.ParseInt(relativePath, 10, 64)
-        if err != nil{
-            http.Error(w, "id: Not a number", http.StatusBadRequest)
-            return
-        }
-
-        // /endpoint/{id}
-        switch r.Method {
-        case "GET": controller.GetOne(context, id)
-        case "DELETE": controller.Delete(context, id)
-        case "PUT": controller.Put(context, id)
-        default: http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-        }
+        handler(context)
     })
+}
+
+func resourceHandler(context *Context, controller Controller) {
+    // /endpoint/
+    if context.Path == "" {
+        switch context.Request.Method {
+        case "GET": controller.GetAll(context)
+        case "POST": controller.Post(context)
+        default: http.Error(context.Writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+        }
+        return
+    }
+
+    id, err := strconv.ParseInt(context.Path, 10, 64)
+    if err != nil{
+        http.Error(context.Writer, "id: Not a number", http.StatusBadRequest)
+        return
+    }
+
+    // /endpoint/{id}
+    switch context.Request.Method {
+    case "GET": controller.GetOne(context, id)
+    case "DELETE": controller.Delete(context, id)
+    case "PUT": controller.Put(context, id)
+    default: http.Error(context.Writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+    }
 }
 
 func main() {
     db = NewDB("localhost:5432", "www-data", "www-data", "iix-notes")
-    registerResource("/beverages/", Beverages{})
-    registerResource("/notes/", Notes{})
+    wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
+    wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
     log.Fatal(http.ListenAndServe(":8000", nil))
 
-//  case "beverages": wrapper(w, r, BeveragesController)
-//  case "books": wrapper(w, r, BooksController)
-//  case "games": wrapper(w, r, GamesController)
-//  case "login": wrapper(w, r, LoginController)
-//  case "markdown": wrapper(w, r, MarkdownController)
-//  case "notes": wrapper(w, r, NotesController)
-
     /*
-    router := mux.NewRouter()
-    router.HandleFunc("/notes", NoteGetAll).Methods("GET")
-    router.HandleFunc("/notes/{id}", NoteGetOne).Methods("GET")
-//  router.HandleFunc("/notes", PostNote).Methods("POST")
-//  router.HandleFunc("/notes/{id}", DeleteNote).Methods("DELETE")
-//  router.HandleFunc("/notes/{id}", PutNote).Methods("PUT")
-
-
-    router.HandleFunc("/beverages", BeverageGetAll).Methods("GET")
-    router.HandleFunc("/beverages/{id}", BeverageGetOne).Methods("GET")
-//  router.HandleFunc("/beverages", PostNote).Methods("POST")
-//  router.HandleFunc("/beverages/{id}", DeleteNote).Methods("DELETE")
-//  router.HandleFunc("/beverages/{id}", PutNote).Methods("PUT")
-    log.Fatal(http.ListenAndServe(":8000", router))
+    TODO:
+    * Beverages
+        - Auth
+    * Notes
+        - Auth
+    * Login
+        - GET / (check login)
+        - POST / (login)
+    * MarkdownTexts
+        - GET /:name
+        - PUT /:name (auth)
+    * Books
+        - GET /
+    * Games
+        - GET /
     */
 }

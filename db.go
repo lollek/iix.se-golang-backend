@@ -25,8 +25,17 @@ func NewDB(addr string, user string, password string, database string) *DB {
     }
 }
 
-func (db DB) LoadOne(model DBModel, id int64) error {
+func (db DB) LoadById(model DBModel, id int64) error {
     err := db.pg_db.Model(model).Where("id = ?", id).Select()
+    switch err {
+    case pg.ErrNoRows:  return ErrNotFound
+    case nil:           return nil
+    default:            panic(err)
+    }
+}
+
+func (db DB) LoadByName(model DBModel, name string) error {
+    err := db.pg_db.Model(model).Where("name = ?", name).Select()
     switch err {
     case pg.ErrNoRows:  return ErrNotFound
     case nil:           return nil

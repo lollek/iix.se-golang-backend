@@ -10,14 +10,14 @@ type Note struct {
     Id      *int64      `json:"id,omitempty"`
     Title   string      `json:"title,omitempty"`
     Text    string      `json:"text,omitempty"`
-    Date    time.Time   `json:"date,omitempty"`
+    Date    *time.Time   `json:"date,omitempty"`
 }
 
 type Notes struct {}
 
 func (Notes) GetOne(c *Context, id int64) {
     var note Note
-    err := db.LoadOne(&note, id)
+    err := db.LoadById(&note, id)
     switch err {
     case ErrNotFound:   http.Error(c.Writer, err.Error(), http.StatusNotFound)
     case nil:           json.NewEncoder(c.Writer).Encode(note)

@@ -22,7 +22,7 @@ type Beverages struct {}
 
 func (Beverages) GetOne(c *Context, id int64) {
     var beverage Beverage
-    err := db.LoadOne(&beverage, id)
+    err := db.LoadById(&beverage, id)
     switch err {
     case ErrNotFound:   http.Error(c.Writer, err.Error(), http.StatusNotFound)
     case nil:           json.NewEncoder(c.Writer).Encode(beverage)
