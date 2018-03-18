@@ -54,30 +54,40 @@ func wrapper(endpoint string, handler func(c *Context)) {
     })
 }
 
-func resourceHandler(context *Context, controller Controller) {
+func resourceHandler(c *Context, controller Controller) {
+    var authorizedMethods = []string {
+        "POST", "PUT", "DELETE",
+    }
+    for _, method := range authorizedMethods {
+        if method == c.Request.Method && !IsAuthorized(c) {
+            c.StatusCode = http.StatusUnauthorized
+            return
+        }
+    }
+
     // /endpoint/
-    if context.Path == "" {
-        switch context.Request.Method {
-        case "GET": controller.GetAll(context)
-        case "POST": controller.Post(context)
-        default: context.StatusCode = http.StatusMethodNotAllowed
+    if c.Path == "" {
+        switch c.Request.Method {
+        case "GET": controller.GetAll(c)
+        case "POST": controller.Post(c)
+        default: c.StatusCode = http.StatusMethodNotAllowed
         }
         return
     }
 
-    id, err := strconv.ParseInt(context.Path, 10, 64)
+    id, err := strconv.ParseInt(c.Path, 10, 64)
     if err != nil {
-        context.StatusCode = http.StatusBadRequest
-        context.Data = "id is not a number"
+        c.StatusCode = http.StatusBadRequest
+        c.Data = "id is not a number"
         return
     }
 
     // /endpoint/{id}
-    switch context.Request.Method {
-    case "GET": controller.GetOne(context, id)
-    case "DELETE": controller.Delete(context, id)
-    case "PUT": controller.Put(context, id)
-    default: context.StatusCode = http.StatusMethodNotAllowed
+    switch c.Request.Method {
+    case "GET": controller.GetOne(c, id)
+    case "DELETE": controller.Delete(c, id)
+    case "PUT": controller.Put(c, id)
+    default: c.StatusCode = http.StatusMethodNotAllowed
     }
 }
 
@@ -91,13 +101,13 @@ func main() {
 
     /*
     TODO:
-    * Beverages
-        - Auth
-    * Notes
-        - Auth
-    * Login
-        - GET / (check login)
-        - POST / (login)
+    * Set data from environment
+        - JWT
+        - DB HOST
+        - DB USER
+        - DB PASS
+        - DB DB?
+
     * MarkdownTexts
         - GET /:name
         - PUT /:name (auth)
