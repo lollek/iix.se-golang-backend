@@ -11,7 +11,7 @@ type Context struct {
     Request     *http.Request
     Path        string
     StatusCode  int
-    Data        string
+    Data        []byte
     Header      map[string]string
 }
 
@@ -34,7 +34,7 @@ func cleanup(w http.ResponseWriter, r *http.Request, c *Context) {
         w.Header().Set(k, v)
     }
     w.WriteHeader(c.StatusCode)
-    w.Write([]byte(c.Data))
+    w.Write(c.Data)
 
     log.Printf("%s %s %s %s %d '%s' '%s'\n",
         r.RemoteAddr, r.Method, r.URL, r.Proto, c.StatusCode, r.Host,
@@ -78,7 +78,7 @@ func resourceHandler(c *Context, controller Controller) {
     id, err := strconv.ParseInt(c.Path, 10, 64)
     if err != nil {
         c.StatusCode = http.StatusBadRequest
-        c.Data = "id is not a number"
+        c.Data = []byte("id is not a number")
         return
     }
 
