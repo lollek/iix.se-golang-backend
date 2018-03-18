@@ -15,6 +15,11 @@ type Context struct {
     Header      map[string]string
 }
 
+func (c Context) SetJsonData(data []byte) {
+    c.Data = data
+    c.Header["Content-Type"] = "application/json"
+}
+
 type Controller interface {
     Delete(c *Context, id int64)
     GetAll(c *Context)

@@ -32,8 +32,7 @@ func (Beverages) GetOne(c *Context, id int64) {
         if err != nil {
             panic(err)
         }
-        c.Data = data
-        c.Header["Content-Type"] = "application/json"
+        c.SetJsonData(data)
     default:
         panic(err)
     }
@@ -48,8 +47,7 @@ func (Beverages) GetAll(c *Context) {
         if err != nil {
             panic(err)
         }
-        c.Data = data
-        c.Header["Content-Type"] = "application/json"
+        c.SetJsonData(data)
     default:
         panic(err)
     }
@@ -65,8 +63,7 @@ func (Beverages) Post(c *Context) {
     if err != nil {
         panic(err)
     }
-    c.Data = data
-    c.Header["Content-Type"] = "application/json"
+    c.SetJsonData(data)
 }
 
 func (Beverages) Delete(c *Context, id int64) {
@@ -83,6 +80,5 @@ func (Beverages) Put(c *Context, id int64) {
     if err != nil {
         panic(err)
     }
-    c.Data = data
-    c.Header["Content-Type"] = "application/json"
+    c.SetJsonData(data)
 }
