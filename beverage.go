@@ -9,13 +9,13 @@ type Beverage struct {
     Id          *int64      `json:"id,omitempty"`
     Name        string      `json:"name,omitempty"`
     Brewery     string      `json:"brewery,omitempty"`
-    Percentage  *float64    `json:"name,omitempty"`
+    Percentage  *float32    `json:"name,omitempty"`
     Country     string      `json:"country,omitempty"`
     Style       string      `json:"style,omitempty"`
     Comment     string      `json:"comment,omitempty"`
-    Sscore      string      `json:"sscore,omitempty"`
-    Oscore      string      `json:"oscore,omitempty"`
-    Category    string      `json:"category,omitempty"`
+    Sscore      *float32    `json:"sscore,omitempty"`
+    Oscore      *float32    `json:"oscore,omitempty"`
+    Category    int32       `json:"category"`
 }
 
 type Beverages struct {}
