@@ -24,9 +24,17 @@ func (Beverages) GetOne(c *Context, id int64) {
     var beverage Beverage
     err := db.LoadById(&beverage, id)
     switch err {
-    case ErrNotFound:   http.Error(c.Writer, err.Error(), http.StatusNotFound)
-    case nil:           json.NewEncoder(c.Writer).Encode(beverage)
-    default:            panic(err)
+    case ErrNotFound:
+        c.StatusCode = http.StatusNotFound
+        c.Data = err.Error()
+    case nil:
+        data, err := json.Marshal(beverage)
+        if err != nil {
+            panic(err)
+        }
+        c.Data = string(data)
+    default:
+        panic(err)
     }
 }
 
@@ -34,9 +42,14 @@ func (Beverages) GetAll(c *Context) {
     var beverages []Beverage
     err := db.LoadAll(&beverages)
     switch err {
-    case ErrNotFound:   json.NewEncoder(c.Writer).Encode(beverages)
-    case nil:           json.NewEncoder(c.Writer).Encode(beverages)
-    default:            panic(err)
+    case ErrNotFound, nil:
+        data, err := json.Marshal(beverages)
+        if err != nil {
+            panic(err)
+        }
+        c.Data = string(data)
+    default:
+        panic(err)
     }
 }
 
@@ -45,11 +58,17 @@ func (Beverages) Post(c *Context) {
     json.NewDecoder(c.Request.Body).Decode(&beverage)
     beverage.Id = nil
     db.Insert(&beverage)
-    json.NewEncoder(c.Writer).Encode(beverage)
+    c.StatusCode = http.StatusCreated
+    data, err := json.Marshal(beverage)
+    if err != nil {
+        panic(err)
+    }
+    c.Data = string(data)
 }
 
 func (Beverages) Delete(c *Context, id int64) {
     db.Delete(&Beverage{Id: &id})
+    c.StatusCode = http.StatusNoContent
 }
 
 func (Beverages) Put(c *Context, id int64) {
@@ -57,5 +76,9 @@ func (Beverages) Put(c *Context, id int64) {
     json.NewDecoder(c.Request.Body).Decode(&beverage)
     beverage.Id = &id
     db.Update(&beverage)
-    json.NewEncoder(c.Writer).Encode(beverage)
+    data, err := json.Marshal(beverage)
+    if err != nil {
+        panic(err)
+    }
+    c.Data = string(data)
 }

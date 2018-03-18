@@ -8,9 +8,11 @@ import (
 )
 
 type Context struct {
-    Writer      http.ResponseWriter
     Request     *http.Request
     Path        string
+    StatusCode  int
+    Data        string
+    Header      map[string]string
 }
 
 type Controller interface {
@@ -21,26 +23,33 @@ type Controller interface {
     Put(c *Context, id int64)
 }
 
-func RecoverPanic(writer http.ResponseWriter) {
+func cleanup(w http.ResponseWriter, r *http.Request, c *Context) {
     if r := recover(); r != nil {
         log.Printf("Panic: '%s'", r)
         log.Printf("Stacktrace: '%s'", debug.Stack())
-        http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+        c.StatusCode = http.StatusInternalServerError
     }
+
+    for k, v := range c.Header {
+        w.Header().Set(k, v)
+    }
+    w.WriteHeader(c.StatusCode)
+    w.Write([]byte(c.Data))
+
+    log.Printf("%s %s %s %s %d '%s' '%s'\n",
+        r.RemoteAddr, r.Method, r.URL, r.Proto, c.StatusCode, r.Host,
+        r.Header.Get("User-Agent"))
 }
 
 func wrapper(endpoint string, handler func(c *Context)) {
     http.HandleFunc(endpoint, func(w http.ResponseWriter, r *http.Request) {
-        defer RecoverPanic(w)
-        context := &Context{
-            Writer: w,
-            Request: r,
-            Path: r.URL.Path[len(endpoint):],
+        c := &Context{
+            Request:    r,
+            Path:       r.URL.Path[len(endpoint):],
+            StatusCode: http.StatusOK,
         }
-
-        handler(context)
-
-        log.Printf("%s %s %s %s ?statuscode? '%s' '%s'\n", r.RemoteAddr, r.Method, r.URL, r.Proto, r.Host, r.Header.Get("User-Agent"))
+        defer cleanup(w, r, c)
+        handler(c)
     })
 }
 
@@ -50,14 +59,15 @@ func resourceHandler(context *Context, controller Controller) {
         switch context.Request.Method {
         case "GET": controller.GetAll(context)
         case "POST": controller.Post(context)
-        default: http.Error(context.Writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+        default: context.StatusCode = http.StatusMethodNotAllowed
         }
         return
     }
 
     id, err := strconv.ParseInt(context.Path, 10, 64)
     if err != nil{
-        http.Error(context.Writer, "id: Not a number", http.StatusBadRequest)
+        context.StatusCode = http.StatusBadRequest
+        context.Data = "id is not a number"
         return
     }
 
@@ -66,7 +76,7 @@ func resourceHandler(context *Context, controller Controller) {
     case "GET": controller.GetOne(context, id)
     case "DELETE": controller.Delete(context, id)
     case "PUT": controller.Put(context, id)
-    default: http.Error(context.Writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+    default: context.StatusCode = http.StatusMethodNotAllowed
     }
 }
 

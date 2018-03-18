@@ -13,14 +13,14 @@ type User struct {
 
 func LoginHandler(c *Context) {
     if c.Path != "" {
-        http.Error(c.Writer, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+        c.StatusCode = http.StatusNotFound
         return
     }
 
     switch c.Request.Method {
         case "GET": checkLoggedIn(c)
         case "POST": login(c)
-        default: http.Error(c.Writer, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+        default: c.StatusCode = http.StatusMethodNotAllowed
     }
 }
 
@@ -30,7 +30,7 @@ func IsAuthorized(c *Context) bool {
 
 func checkLoggedIn(c *Context) {
     if !IsAuthorized(c) {
-        http.Error(c.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+        c.StatusCode = http.StatusUnauthorized
     }
 }
 
@@ -38,20 +38,23 @@ func login(c *Context) {
     var remoteUser User
     json.NewDecoder(c.Request.Body).Decode(&remoteUser)
     if remoteUser.Password == "" {
-        http.Error(c.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+        c.StatusCode = http.StatusUnauthorized
         return
     }
 
     var dbUser User
     err := db.LoadBy(&dbUser, "username", remoteUser.Username)
     if err != nil {
-        http.Error(c.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+        c.StatusCode = http.StatusUnauthorized
         return
     }
 
-    err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(remoteUser.Password))
+    err = bcrypt.CompareHashAndPassword(
+        []byte(dbUser.Password),
+        []byte(remoteUser.Password))
+
     if err != nil {
-        http.Error(c.Writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+        c.StatusCode = http.StatusUnauthorized
         return
     }
 
