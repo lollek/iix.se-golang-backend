@@ -2,10 +2,11 @@ package main
 
 import (
     "net/http"
-//  "encoding/json"
+    "encoding/json"
 )
 
 type MarkdownText struct {
+    Id      *int64      `json:"-"`
     Name    string      `json:"name"`
     Data    string      `json:"data"`
 }
@@ -22,12 +23,28 @@ func MarkdownTextHandler(c *Context) {
 
     switch c.Request.Method {
     case "GET":     getText(c)
-    case "POST":    setText(c)
+    case "PUT":     setText(c)
     default:        c.StatusCode = http.StatusMethodNotAllowed
     }
 }
 
 func setText(c *Context) {
+    var remoteData MarkdownText
+    json.NewDecoder(c.Request.Body).Decode(&remoteData)
+
+    var dbData MarkdownText
+    err := db.LoadBy(&dbData, "name", c.Path)
+    if err == ErrNotFound {
+        c.StatusCode = http.StatusNotFound
+        c.Data = []byte(err.Error())
+        return
+    } else if err != nil {
+        panic(err)
+    }
+
+    dbData.Data = remoteData.Data
+    db.Update(&dbData)
+    c.SetJsonData(&dbData)
 }
 
 func getText(c *Context) {
