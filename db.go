@@ -34,8 +34,8 @@ func (db DB) LoadById(model DBModel, id int64) error {
     }
 }
 
-func (db DB) LoadByName(model DBModel, name string) error {
-    err := db.pg_db.Model(model).Where("name = ?", name).Select()
+func (db DB) LoadBy(model DBModel, by string, name string) error {
+    err := db.pg_db.Model(model).Where(by + "= ?", name).Select()
     switch err {
     case pg.ErrNoRows:  return ErrNotFound
     case nil:           return nil

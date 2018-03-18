@@ -37,7 +37,10 @@ func wrapper(endpoint string, handler func(c *Context)) {
             Request: r,
             Path: r.URL.Path[len(endpoint):],
         }
+
         handler(context)
+
+        log.Printf("%s %s %s %s ?statuscode? '%s' '%s'\n", r.RemoteAddr, r.Method, r.URL, r.Proto, r.Host, r.Header.Get("User-Agent"))
     })
 }
 
@@ -71,6 +74,7 @@ func main() {
     db = NewDB("localhost:5432", "www-data", "www-data", "iix-notes")
     wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
     wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
+    wrapper("/login/",      func(c *Context) { LoginHandler(c) })
     log.Fatal(http.ListenAndServe(":8000", nil))
 
     /*
