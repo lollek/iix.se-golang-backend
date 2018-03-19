@@ -132,6 +132,8 @@ func main() {
     wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
     wrapper("/login/",      func(c *Context) { LoginHandler(c) })
     wrapper("/markdown/",   func(c *Context) { MarkdownTextHandler(c) })
+    wrapper("/books/",      func(c *Context) { BookHandler(c) })
+    wrapper("/games/",      func(c *Context) { GameHandler(c) })
     log.Fatal(http.ListenAndServe(":8000", nil))
 
     /*
