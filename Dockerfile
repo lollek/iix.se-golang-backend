@@ -1,6 +1,7 @@
 FROM scratch
 ADD iix.se-golang-backend /
 
+ENV WEBROOT ""
 ENV DBHOST ""
 ENV DBUSER ""
 ENV DBPASS ""

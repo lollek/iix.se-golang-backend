@@ -123,17 +123,16 @@ func main() {
     if dbuser == "" {
         log.Fatal("JWT missing")
     }
-
-
+    webroot := os.Getenv("WEBROOT")
 
     db = NewDB(dbhost, dbuser, dbpass, dbname)
     InitJWT(jwt)
-    wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
-    wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
-    wrapper("/login/",      func(c *Context) { LoginHandler(c) })
-    wrapper("/markdown/",   func(c *Context) { MarkdownTextHandler(c) })
-    wrapper("/books/",      func(c *Context) { BookHandler(c) })
-    wrapper("/games/",      func(c *Context) { GameHandler(c) })
+    wrapper(webroot + "/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
+    wrapper(webroot + "/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
+    wrapper(webroot + "/login/",      func(c *Context) { LoginHandler(c) })
+    wrapper(webroot + "/markdown/",   func(c *Context) { MarkdownTextHandler(c) })
+    wrapper(webroot + "/books/",      func(c *Context) { BookHandler(c) })
+    wrapper(webroot + "/games/",      func(c *Context) { GameHandler(c) })
     log.Fatal(http.ListenAndServe("0.0.0.0:80", nil))
 
     /*
