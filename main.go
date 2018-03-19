@@ -134,12 +134,4 @@ func main() {
     wrapper(webroot + "/books/",      func(c *Context) { BookHandler(c) })
     wrapper(webroot + "/games/",      func(c *Context) { GameHandler(c) })
     log.Fatal(http.ListenAndServe("0.0.0.0:80", nil))
-
-    /*
-    TODO:
-    * Books
-        - GET /
-    * Games
-        - GET /
-    */
 }
