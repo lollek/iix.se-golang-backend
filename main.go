@@ -1,6 +1,7 @@
 package main
 
 import (
+    "os"
     "log"
     "strconv"
     "net/http"
@@ -102,8 +103,31 @@ func resourceHandler(c *Context, controller Controller) {
 }
 
 func main() {
-    db = NewDB("localhost:5432", "www-data", "www-data", "iix-notes")
-    InitJWT("debug")
+    dbhost := os.Getenv("DBHOST")
+    if dbhost == "" {
+        log.Fatal("DBHOST missing")
+    }
+    dbuser := os.Getenv("DBUSER")
+    if dbuser == "" {
+        log.Fatal("DBUSER missing")
+    }
+    dbpass := os.Getenv("DBPASS")
+    if dbuser == "" {
+        log.Fatal("DBPASS missing")
+    }
+    dbname := os.Getenv("DBNAME")
+    if dbuser == "" {
+        log.Fatal("DBNAME missing")
+    }
+    jwt := os.Getenv("JWT")
+    if dbuser == "" {
+        log.Fatal("JWT missing")
+    }
+
+
+
+    db = NewDB(dbhost, dbuser, dbpass, dbname)
+    InitJWT(jwt)
     wrapper("/beverages/",  func(c *Context) { resourceHandler(c, Beverages{}) })
     wrapper("/notes/",      func(c *Context) { resourceHandler(c, Notes{}) })
     wrapper("/login/",      func(c *Context) { LoginHandler(c) })
@@ -112,13 +136,6 @@ func main() {
 
     /*
     TODO:
-    * Set data from environment
-        - JWT
-        - DB HOST
-        - DB USER
-        - DB PASS
-        - DB DB?
-
     * Books
         - GET /
     * Games
