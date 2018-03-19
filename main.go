@@ -134,7 +134,7 @@ func main() {
     wrapper("/markdown/",   func(c *Context) { MarkdownTextHandler(c) })
     wrapper("/books/",      func(c *Context) { BookHandler(c) })
     wrapper("/games/",      func(c *Context) { GameHandler(c) })
-    log.Fatal(http.ListenAndServe(":8000", nil))
+    log.Fatal(http.ListenAndServe("0.0.0.0:80", nil))
 
     /*
     TODO:
