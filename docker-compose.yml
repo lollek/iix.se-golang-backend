@@ -4,10 +4,10 @@ services:
     database:
         image: postgres:9.6-alpine
         volumes:
-            - /srv/docker/iix-notes/data/database:/var/lib/postgresql/data
+            - ~iix/database-scratch:/var/lib/postgresql/data:Z
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
-            - $HOME/iix-notes-db:/docker-entrypoint-initdb.d:Z
+            - ~iix/iix-notes-db:/docker-entrypoint-initdb.d:Z
         restart: unless-stopped
 
     backend:
@@ -19,9 +19,9 @@ services:
             DBPASS: www-data
             DBNAME: iix-notes
             JWT: debug
-            ports:
-                - "127.0.0.1:9002:80"
-            volumes:
-                - /etc/timezone:/etc/timezone:ro
-                - /etc/localtime:/etc/localtime:ro
-            restart: unless-stopped
+        ports:
+            - "127.0.0.1:9002:80"
+        volumes:
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+        restart: unless-stopped
